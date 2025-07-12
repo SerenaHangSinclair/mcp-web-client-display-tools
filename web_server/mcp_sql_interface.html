@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP Server Testing Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .server-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .server-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .server-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .server-card.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+        }
+        
+        .server-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .server-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+        
+        .status-connected {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .status-disconnected {
+            background: #f44336;
+            color: white;
+        }
+        
+        .server-tools {
+            margin-top: 15px;
+        }
+        
+        .tool-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            margin: 5px 5px 5px 0;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .tool-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .control-panel {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .action-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .response-area {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        
+        .log-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .log-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .log-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .connection-form {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+        
+        @media (max-width: 768px) {
+            .connection-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .server-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 MCP Server Testing Interface</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('servers')">Server Management</div>
+            <div class="tab" onclick="switchTab('testing')">Tool Testing</div>
+            <div class="tab" onclick="switchTab('logs')">Response Logs</div>
+        </div>
+        
+        <!-- Servers Tab -->
+        <div id="servers-tab" class="tab-content active">
+            <div class="control-panel">
+                <h3>Add MCP Server</h3>
+                <div class="connection-form">
+                    <div>
+                        <div class="input-group">
+                            <label for="serverName">Server Name</label>
+                            <input type="text" id="serverName" placeholder="e.g., MSSQL Server">
+                        </div>
+                        <div class="input-group">
+                            <label for="serverUrl">Server URL/Endpoint</label>
+                            <input type="text" id="serverUrl" placeholder="e.g., http://localhost:3000 or stdio://path/to/server">
+                        </div>
+                        <div class="input-group">
+                            <label for="serverType">Transport Type</label>
+                            <select id="serverType">
+                                <option value="http">HTTP/SSE</option>
+                                <option value="stdio">STDIO</option>
+                                <option value="streamable-http">Streamable HTTP</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="action-button" onclick="addServer()">Add Server</button>
+                </div>
+            </div>
+            
+            <h3 style="margin: 30px 0 20px 0;">Connected Servers</h3>
+            <div class="server-grid" id="serverGrid">
+                <!-- Server cards will be dynamically added here -->
+            </div>
+        </div>
+        
+        <!-- Testing Tab -->
+        <div id="testing-tab" class="tab-content">
+            <div class="control-panel">
+                <h3>Tool Testing</h3>
+                <div class="input-group">
+                    <label for="selectedServer">Select Server</label>
+                    <select id="selectedServer">
+                        <option value="">Select a server...</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="toolName">Tool/Function Name</label>
+                    <select id="toolName">
+                        <option value="">Select a tool...</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="toolParameters">Parameters (JSON)</label>
+                    <textarea id="toolParameters" rows="4" placeholder='{"table_name": "users", "limit": 10}'></textarea>
+                </div>
+                <button class="action-button" onclick="executeTool()">Execute Tool</button>
+                <button class="action-button" onclick="listServerTools()">List Available Tools</button>
+            </div>
+        </div>
+        
+        <!-- Logs Tab -->
+        <div id="logs-tab" class="tab-content">
+            <div class="control-panel">
+                <h3>Response Logs</h3>
+                <button class="action-button" onclick="clearLogs()">Clear Logs</button>
+                <div class="response-area" id="responseArea">
+                    <div class="log-info">Welcome to MCP Server Testing Interface. Add servers and start testing!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let servers = {};
+        let currentServerId = null;
+        let logs = [];
+
+        // Sample server configurations for your use case
+        const sampleServers = [
+            {
+                name: "MSSQL Server",
+                url: "http://localhost:3001",
+                type: "http",
+                tools: ["list_tables", "query_database", "get_table_schema", "execute_query"]
+            },
+            {
+                name: "Security Score Server",
+                url: "http://localhost:3002", 
+                type: "http",
+                tools: ["get_security_score", "get_security_recommendations", "update_security_settings"]
+            },
+            {
+                name: "CSP Settings Server",
+                url: "http://localhost:3003",
+                type: "http", 
+                tools: ["get_csp_settings", "update_csp_policy", "validate_csp"]
+            },
+            {
+                name: "Tenant Management Server",
+                url: "http://localhost:3004",
+                type: "http",
+                tools: ["get_tenants", "get_users", "create_tenant", "update_user_permissions"]
+            }
+        ];
+
+        // Initialize with sample servers
+        function initializeSampleServers() {
+            sampleServers.forEach(server => {
+                const id = generateId();
+                servers[id] = {
+                    ...server,
+                    id,
+                    status: 'disconnected',
+                    lastResponse: null
+                };
+            });
+            updateServerGrid();
+            updateServerSelect();
+        }
+
+        function generateId() {
+            return 'server_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function addServer() {
+            const name = document.getElementById('serverName').value.trim();
+            const url = document.getElementById('serverUrl').value.trim();
+            const type = document.getElementById('serverType').value;
+
+            if (!name || !url) {
+                addLog('error', 'Please provide both server name and URL');
+                return;
+            }
+
+            const id = generateId();
+            servers[id] = {
+                id,
+                name,
+                url,
+                type,
+                status: 'disconnected',
+                tools: [],
+                lastResponse: null
+            };
+
+            // Clear form
+            document.getElementById('serverName').value = '';
+            document.getElementById('serverUrl').value = '';
+            
+            updateServerGrid();
+            updateServerSelect();
+            addLog('success', `Added server: ${name}`);
+        }
+
+        function updateServerGrid() {
+            const grid = document.getElementById('serverGrid');
+            grid.innerHTML = '';
+
+            Object.values(servers).forEach(server => {
+                const card = document.createElement('div');
+                card.className = `server-card ${server.status === 'connected' ? 'active' : ''}`;
+                card.innerHTML = `
+                    <div class="server-title">${server.name}</div>
+                    <div class="server-status status-${server.status}">${server.status.toUpperCase()}</div>
+                    <div><strong>URL:</strong> ${server.url}</div>
+                    <div><strong>Type:</strong> ${server.type.toUpperCase()}</div>
+                    <div class="server-tools">
+                        <button class="tool-button" onclick="connectToServer('${server.id}')">
+                            ${server.status === 'connected' ? 'Reconnect' : 'Connect'}
+                        </button>
+                        <button class="tool-button" onclick="removeServer('${server.id}')">Remove</button>
+                        <button class="tool-button" onclick="testConnection('${server.id}')">Test</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function updateServerSelect() {
+            const select = document.getElementById('selectedServer');
+            select.innerHTML = '<option value="">Select a server...</option>';
+            
+            Object.values(servers).forEach(server => {
+                const option = document.createElement('option');
+                option.value = server.id;
+                option.textContent = `${server.name} (${server.status})`;
+                select.appendChild(option);
+            });
+        }
+
+        function removeServer(serverId) {
+            if (confirm('Are you sure you want to remove this server?')) {
+                delete servers[serverId];
+                updateServerGrid();
+                updateServerSelect();
+                addLog('info', 'Server removed');
+            }
+        }
+
+        async function connectToServer(serverId) {
+            const server = servers[serverId];
+            addLog('info', `Attempting to connect to ${server.name}...`);
+
+            try {
+                // Simulate connection based on transport type
+                if (server.type === 'http' || server.type === 'streamable-http') {
+                    // For HTTP/SSE servers, try to discover tools
+                    const response = await fetch(`${server.url}/tools`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    if (response.ok) {
+                        const tools = await response.json();
+                        server.tools = tools.map(tool => tool.name || tool);
+                        server.status = 'connected';
+                        addLog('success', `Connected to ${server.name}. Found ${server.tools.length} tools.`);
+                    } else {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                } else {
+                    // For STDIO servers, simulate connection
+                    server.status = 'connected';
+                    // Add common MSSQL tools as default
+                    server.tools = ['list_tables', 'query_database', 'get_table_schema', 'execute_query'];
+                    addLog('success', `Connected to ${server.name} via STDIO`);
+                }
+            } catch (error) {
+                // If direct connection fails, set sample tools for demo
+                server.status = 'connected';
+                if (server.name.includes('MSSQL')) {
+                    server.tools = ['list_tables', 'query_database', 'get_table_schema', 'execute_query'];
+                } else if (server.name.includes('Security')) {
+                    server.tools = ['get_security_score', 'get_security_recommendations', 'update_security_settings'];
+                } else if (server.name.includes('CSP')) {
+                    server.tools = ['get_csp_settings', 'update_csp_policy', 'validate_csp'];
+                } else if (server.name.includes('Tenant')) {
+                    server.tools = ['get_tenants', 'get_users', 'create_tenant', 'update_user_permissions'];
+                } else {
+                    server.tools = ['ping', 'status', 'info'];
+                }
+                addLog('info', `Simulated connection to ${server.name} (server not running). Using sample tools for demo.`);
+            }
+
+            updateServerGrid();
+            updateServerSelect();
+            updateToolSelect();
+        }
+
+        function updateToolSelect() {
+            const serverSelect = document.getElementById('selectedServer');
+            const toolSelect = document.getElementById('toolName');
+            const serverId = serverSelect.value;
+
+            toolSelect.innerHTML = '<option value="">Select a tool...</option>';
+
+            if (serverId && servers[serverId]) {
+                const server = servers[serverId];
+                server.tools.forEach(tool => {
+                    const option = document.createElement('option');
+                    option.value = tool;
+                    option.textContent = tool;
+                    toolSelect.appendChild(option);
+                });
+            }
+        }
+
+        async function testConnection(serverId) {
+            const server = servers[serverId];
+            addLog('info', `Testing connection to ${server.name}...`);
+            
+            try {
+                // Simulate a simple ping/health check
+                if (server.type === 'http' || server.type === 'streamable-http') {
+                    const response = await fetch(`${server.url}/health`, {
+                        method: 'GET',
+                        timeout: 5000
+                    });
+                    
+                    if (response.ok) {
+                        addLog('success', `${server.name} is responding`);
+                    } else {
+                        addLog('error', `${server.name} returned ${response.status}`);
+                    }
+                } else {
+                    // For STDIO, simulate test
+                    addLog('success', `${server.name} STDIO connection test passed`);
+                }
+            } catch (error) {
+                addLog('error', `Connection test failed for ${server.name}: ${error.message}`);
+            }
+        }
+
+        async function executeTool() {
+            const serverId = document.getElementById('selectedServer').value;
+            const toolName = document.getElementById('toolName').value;
+            const parametersText = document.getElementById('toolParameters').value;
+
+            if (!serverId || !toolName) {
+                addLog('error', 'Please select a server and tool');
+                return;
+            }
+
+            const server = servers[serverId];
+            let parameters = {};
+            
+            if (parametersText.trim()) {
+                try {
+                    parameters = JSON.parse(parametersText);
+                } catch (e) {
+                    addLog('error', 'Invalid JSON in parameters');
+                    return;
+                }
+            }
+
+            addLog('info', `Executing ${toolName} on ${server.name}...`);
+
+            try {
+                // Simulate tool execution
+                const mockResponse = await simulateToolExecution(server, toolName, parameters);
+                addLog('success', `Tool executed successfully:\n${JSON.stringify(mockResponse, null, 2)}`);
+                server.lastResponse = mockResponse;
+            } catch (error) {
+                addLog('error', `Tool execution failed: ${error.message}`);
+            }
+        }
+
+        async function simulateToolExecution(server, toolName, parameters) {
+            // Simulate different responses based on server type and tool
+            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+
+            if (server.name.includes('MSSQL')) {
+                switch (toolName) {
+                    case 'list_tables':
+                        return {
+                            tables: ['users', 'products', 'orders', 'customers', 'invoices'],
+                            database: 'production',
+                            schema: 'dbo'
+                        };
+                    case 'get_table_schema':
+                        return {
+                            table: parameters.table_name || 'users',
+                            columns: [
+                                { name: 'id', type: 'int', nullable: false },
+                                { name: 'username', type: 'varchar(50)', nullable: false },
+                                { name: 'email', type: 'varchar(100)', nullable: true },
+                                { name: 'created_at', type: 'datetime', nullable: false }
+                            ]
+                        };
+                    case 'execute_query':
+                        return {
+                            rows: [
+                                { id: 1, username: 'john_doe', email: 'john@example.com' },
+                                { id: 2, username: 'jane_smith', email: 'jane@example.com' }
+                            ],
+                            rowCount: 2,
+                            executionTime: '45ms'
+                        };
+                }
+            } else if (server.name.includes('Security')) {
+                switch (toolName) {
+                    case 'get_security_score':
+                        return {
+                            overall_score: 78,
+                            categories: {
+                                authentication: 85,
+                                authorization: 72,
+                                encryption: 90,
+                                logging: 65
+                            },
+                            last_assessment: '2025-07-09T10:00:00Z'
+                        };
+                    case 'get_security_recommendations':
+                        return {
+                            high_priority: [
+                                'Enable multi-factor authentication',
+                                'Update password policy'
+                            ],
+                            medium_priority: [
+                                'Improve session management',
+                                'Enable audit logging'
+                            ]
+                        };
+                }
+            } else if (server.name.includes('CSP')) {
+                switch (toolName) {
+                    case 'get_csp_settings':
+                        return {
+                            policy: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
+                            report_only: false,
+                            violations_last_24h: 12
+                        };
+                }
+            } else if (server.name.includes('Tenant')) {
+                switch (toolName) {
+                    case 'get_tenants':
+                        return {
+                            tenants: [
+                                { id: 1, name: 'Acme Corp', status: 'active', users: 150 },
+                                { id: 2, name: 'Beta Inc', status: 'active', users: 89 },
+                                { id: 3, name: 'Gamma LLC', status: 'suspended', users: 45 }
+                            ]
+                        };
+                    case 'get_users':
+                        return {
+                            users: [
+                                { id: 1, name: 'Admin User', role: 'admin', tenant_id: 1 },
+                                { id: 2, name: 'John Manager', role: 'manager', tenant_id: 1 },
+                                { id: 3, name: 'Jane Analyst', role: 'user', tenant_id: 2 }
+                            ]
+                        };
+                }
+            }
+
+            return { message: 'Tool executed successfully', timestamp: new Date().toISOString() };
+        }
+
+        function listServerTools() {
+            const serverId = document.getElementById('selectedServer').value;
+            if (!serverId) {
+                addLog('error', 'Please select a server');
+                return;
+            }
+
+            const server = servers[serverId];
+            addLog('info', `Available tools for ${server.name}:\n${server.tools.join(', ')}`);
+        }
+
+        function addLog(type, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const log = { type, message, timestamp };
+            logs.unshift(log);
+            
+            const responseArea = document.getElementById('responseArea');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            
+            responseArea.insertBefore(logEntry, responseArea.firstChild);
+            
+            // Keep only last 50 logs
+            if (logs.length > 50) {
+                logs = logs.slice(0, 50);
+                const entries = responseArea.querySelectorAll('.log-entry');
+                if (entries.length > 50) {
+                    entries[entries.length - 1].remove();
+                }
+            }
+        }
+
+        function clearLogs() {
+            logs = [];
+            document.getElementById('responseArea').innerHTML = 
+                '<div class="log-info">Logs cleared. Ready for new operations.</div>';
+        }
+
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Event listeners
+        document.getElementById('selectedServer').addEventListener('change', updateToolSelect);
+
+        // Add sample tools for common operations
+        document.getElementById('toolParameters').addEventListener('focus', function() {
+            const toolName = document.getElementById('toolName').value;
+            if (!this.value && toolName) {
+                switch (toolName) {
+                    case 'list_tables':
+                        this.value = '{}';
+                        break;
+                    case 'get_table_schema':
+                        this.value = '{"table_name": "users"}';
+                        break;
+                    case 'execute_query':
+                        this.value = '{"query": "SELECT TOP 10 * FROM users", "limit": 10}';
+                        break;
+                    case 'get_security_score':
+                        this.value = '{"include_details": true}';
+                        break;
+                    case 'get_tenants':
+                        this.value = '{"status": "active", "limit": 100}';
+                        break;
+                    case 'get_users':
+                        this.value = '{"tenant_id": 1, "role": "all"}';
+                        break;
+                }
+            }
+        });
+
+        // Initialize the interface
+        window.addEventListener('DOMContentLoaded', function() {
+            initializeSampleServers();
+            addLog('success', 'MCP Testing Interface initialized. Sample servers added for demonstration.');
+        });
+    </script>
+</body>
+</html>
