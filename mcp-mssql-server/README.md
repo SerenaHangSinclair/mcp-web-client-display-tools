@@ -121,10 +121,22 @@ QUERY_TIMEOUT=30000
 
 ### Running the MCP Server
 
-suggest to use uv to create a sperate virtual environment for the MCP construction
+Suggest to use uv to create a sperate virtual environment for the MCP construction
+Remember to install uv/:
+Windows - 
+```bash
+    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+'''
+
+MacOS/Linux
+```bash
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+'''
+
 ```bash
     uv venv
 '''
+
 
 **Basic usage:**
 ```bash
