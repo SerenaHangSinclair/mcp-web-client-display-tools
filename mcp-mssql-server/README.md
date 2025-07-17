@@ -121,6 +121,11 @@ QUERY_TIMEOUT=30000
 
 ### Running the MCP Server
 
+suggest to use uv to create a sperate virtual environment for the MCP construction
+```bash
+    uv venv
+'''
+
 **Basic usage:**
 ```bash
 uv run python main.py or uv run python mssql.py 

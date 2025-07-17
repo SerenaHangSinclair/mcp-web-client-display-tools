@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP Client - Tool Explorer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .tool-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .tool-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .tool-name {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .tool-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .parameters {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        .param-item {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+        .param-name {
+            font-weight: 600;
+            color: #495057;
+            min-width: 120px;
+        }
+        .param-type {
+            color: #6c757d;
+            font-size: 0.9em;
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 3px;
+            margin-left: 10px;
+        }
+        .optional {
+            color: #28a745;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.connecting {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        .connect-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .tools-section {
+            display: none;
+        }
+        .tools-section.visible {
+            display: block;
+        }
+        .error {
+            color: #dc3545;
+            margin-top: 10px;
+        }
+        .tool-invoke {
+            margin-top: 15px;
+            display: none;
+        }
+        .tool-card.expanded .tool-invoke {
+            display: block;
+        }
+        .invoke-button {
+            background: #28a745;
+            font-size: 14px;
+            padding: 8px 16px;
+            margin-top: 10px;
+        }
+        .invoke-button:hover {
+            background: #218838;
+        }
+        .result-area {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>MCP Client - Tool Explorer</h1>
+        <p>Connect to an MCP server and explore available tools</p>
+    </div>
+
+    <div class="connect-section">
+        <h2>Connect to MCP Server</h2>
+        <input type="text" id="serverUrl" placeholder="ws://localhost:3000" value="ws://localhost:3000">
+        <button id="connectBtn" onclick="connectToServer()">Connect</button>
+        <div id="connectionStatus" class="status disconnected">Disconnected</div>
+        <div id="errorMessage" class="error"></div>
+    </div>
+
+    <div id="toolsSection" class="tools-section">
+        <h2>Available Tools</h2>
+        <div id="toolsList"></div>
+    </div>
+
+    <script>
+        // MCP Client Implementation
+        class MCPClient {
+            constructor() {
+                this.ws = null;
+                this.requestId = 0;
+                this.pendingRequests = new Map();
+                this.tools = [];
+            }
+
+            connect(url) {
+                return new Promise((resolve, reject) => {
+                    this.ws = new WebSocket(url);
+                    
+                    this.ws.onopen = () => {
+                        console.log('Connected to MCP server');
+                        this.initialize().then(resolve).catch(reject);
+                    };
+
+                    this.ws.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                        reject(error);
+                    };
+
+                    this.ws.onclose = () => {
+                        console.log('Disconnected from MCP server');
+                        updateConnectionStatus('disconnected');
+                    };
+
+                    this.ws.onmessage = (event) => {
+                        this.handleMessage(JSON.parse(event.data));
+                    };
+                });
+            }
+
+            async initialize() {
+                // Send initialize request
+                const initResponse = await this.sendRequest('initialize', {
+                    protocolVersion: '1.0',
+                    clientInfo: {
+                        name: 'MCP Tool Explorer',
+                        version: '1.0.0'
+                    }
+                });
+
+                // List available tools
+                const toolsResponse = await this.sendRequest('tools/list', {});
+                this.tools = toolsResponse.tools || [];
+                return this.tools;
+            }
+
+            sendRequest(method, params) {
+                return new Promise((resolve, reject) => {
+                    const id = ++this.requestId;
+                    const request = {
+                        jsonrpc: '2.0',
+                        id,
+                        method,
+                        params
+                    };
+
+                    this.pendingRequests.set(id, { resolve, reject });
+                    this.ws.send(JSON.stringify(request));
+                });
+            }
+
+            handleMessage(message) {
+                if (message.id && this.pendingRequests.has(message.id)) {
+                    const { resolve, reject } = this.pendingRequests.get(message.id);
+                    this.pendingRequests.delete(message.id);
+
+                    if (message.error) {
+                        reject(new Error(message.error.message));
+                    } else {
+                        resolve(message.result);
+                    }
+                }
+            }
+
+            async invokeTool(toolName, args) {
+                return await this.sendRequest('tools/call', {
+                    name: toolName,
+                    arguments: args
+                });
+            }
+
+            disconnect() {
+                if (this.ws) {
+                    this.ws.close();
+                    this.ws = null;
+                }
+            }
+        }
+
+        // Global client instance
+        let mcpClient = new MCPClient();
+
+        // UI Functions
+        function updateConnectionStatus(status) {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.className = `status ${status}`;
+            
+            const messages = {
+                connected: 'Connected',
+                disconnected: 'Disconnected',
+                connecting: 'Connecting...'
+            };
+            
+            statusEl.textContent = messages[status] || 'Unknown';
+            
+            if (status === 'connected') {
+                document.getElementById('toolsSection').classList.add('visible');
+                document.getElementById('connectBtn').textContent = 'Disconnect';
+            } else {
+                document.getElementById('toolsSection').classList.remove('visible');
+                document.getElementById('connectBtn').textContent = 'Connect';
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            setTimeout(() => {
+                document.getElementById('errorMessage').textContent = '';
+            }, 5000);
+        }
+
+        async function connectToServer() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            
+            if (mcpClient.ws && mcpClient.ws.readyState === WebSocket.OPEN) {
+                mcpClient.disconnect();
+                updateConnectionStatus('disconnected');
+                return;
+            }
+
+            updateConnectionStatus('connecting');
+            
+            try {
+                const tools = await mcpClient.connect(serverUrl);
+                updateConnectionStatus('connected');
+                displayTools(tools);
+            } catch (error) {
+                showError('Failed to connect: ' + error.message);
+                updateConnectionStatus('disconnected');
+            }
+        }
+
+        function displayTools(tools) {
+            const toolsList = document.getElementById('toolsList');
+            toolsList.innerHTML = '';
+
+            // For demonstration, we'll show the tools from your MCP server
+            const demoTools = [
+                {
+                    name: 'sql_query',
+                    description: 'Execute SQL queries with permission controls',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            query: { type: 'string', description: 'SQL query to execute' }
+                        },
+                        required: ['query']
+                    }
+                },
+                {
+                    name: 'get_database_info',
+                    description: 'Get server version, current database, and available databases',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {}
+                    }
+                },
+                {
+                    name: 'show_tables',
+                    description: 'List all tables in the current database',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            schema_name: { type: 'string', description: 'Schema name (optional)' }
+                        }
+                    }
+                },
+                {
+                    name: 'describe_table',
+                    description: 'Get detailed table structure information',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            table_name: { type: 'string', description: 'Name of the table' },
+                            schema_name: { type: 'string', description: 'Schema name (default: dbo)' }
+                        },
+                        required: ['table_name']
+                    }
+                },
+                {
+                    name: 'show_indexes',
+                    description: 'Display indexes for a table or all tables',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            table_name: { type: 'string', description: 'Table name (optional)' },
+                            schema_name: { type: 'string', description: 'Schema name (default: dbo)' }
+                        }
+                    }
+                },
+                {
+                    name: 'generate_analysis_notebook',
+                    description: 'Create Jupyter notebook with automated data analysis code',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            query: { type: 'string', description: 'SQL query for analysis' },
+                            output_file: { type: 'string', description: 'Output file path (optional)' }
+                        },
+                        required: ['query']
+                    }
+                },
+                {
+                    name: 'generate_visualization',
+                    description: 'Create interactive visualizations from query results',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            query: { type: 'string', description: 'SQL query for visualization' },
+                            viz_type: { type: 'string', description: 'Visualization type (auto/bar/scatter/pie/line/heatmap/table)' },
+                            title: { type: 'string', description: 'Chart title (optional)' }
+                        },
+                        required: ['query']
+                    }
+                },
+                {
+                    name: 'generate_powerbi_visualization',
+                    description: 'Generate Power BI compatible data exports',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            query: { type: 'string', description: 'SQL query for Power BI export' },
+                            viz_type: { type: 'string', description: 'Visualization type (default: auto)' }
+                        },
+                        required: ['query']
+                    }
+                }
+            ];
+
+            // Use demo tools if no tools received
+            const toolsToDisplay = tools.length > 0 ? tools : demoTools;
+
+            toolsToDisplay.forEach(tool => {
+                const toolCard = createToolCard(tool);
+                toolsList.appendChild(toolCard);
+            });
+        }
+
+        function createToolCard(tool) {
+            const card = document.createElement('div');
+            card.className = 'tool-card';
+            card.onclick = () => toggleToolCard(card);
+
+            const toolName = document.createElement('div');
+            toolName.className = 'tool-name';
+            toolName.textContent = tool.name;
+
+            const toolDesc = document.createElement('div');
+            toolDesc.className = 'tool-description';
+            toolDesc.textContent = tool.description || 'No description available';
+
+            card.appendChild(toolName);
+            card.appendChild(toolDesc);
+
+            // Parameters section
+            if (tool.inputSchema && tool.inputSchema.properties) {
+                const paramsDiv = document.createElement('div');
+                paramsDiv.className = 'parameters';
+                
+                const paramsTitle = document.createElement('strong');
+                paramsTitle.textContent = 'Parameters:';
+                paramsDiv.appendChild(paramsTitle);
+
+                const props = tool.inputSchema.properties;
+                const required = tool.inputSchema.required || [];
+
+                Object.entries(props).forEach(([paramName, paramInfo]) => {
+                    const paramItem = document.createElement('div');
+                    paramItem.className = 'param-item';
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'param-name';
+                    nameSpan.textContent = paramName;
+
+                    const typeSpan = document.createElement('span');
+                    typeSpan.className = 'param-type';
+                    typeSpan.textContent = paramInfo.type || 'any';
+
+                    paramItem.appendChild(nameSpan);
+                    paramItem.appendChild(typeSpan);
+
+                    if (!required.includes(paramName)) {
+                        const optionalSpan = document.createElement('span');
+                        optionalSpan.className = 'optional';
+                        optionalSpan.textContent = '(optional)';
+                        paramItem.appendChild(optionalSpan);
+                    }
+
+                    paramsDiv.appendChild(paramItem);
+                });
+
+                card.appendChild(paramsDiv);
+            }
+
+            // Tool invocation section
+            const invokeDiv = document.createElement('div');
+            invokeDiv.className = 'tool-invoke';
+            
+            const invokeTitle = document.createElement('h4');
+            invokeTitle.textContent = 'Try it out:';
+            invokeDiv.appendChild(invokeTitle);
+
+            // Create input fields for parameters
+            if (tool.inputSchema && tool.inputSchema.properties) {
+                Object.entries(tool.inputSchema.properties).forEach(([paramName, paramInfo]) => {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.placeholder = `${paramName} (${paramInfo.description || paramInfo.type})`;
+                    input.id = `${tool.name}_${paramName}`;
+                    invokeDiv.appendChild(input);
+                });
+            }
+
+            const invokeBtn = document.createElement('button');
+            invokeBtn.className = 'invoke-button';
+            invokeBtn.textContent = 'Invoke Tool';
+            invokeBtn.onclick = (e) => {
+                e.stopPropagation();
+                invokeTool(tool);
+            };
+            invokeDiv.appendChild(invokeBtn);
+
+            const resultArea = document.createElement('div');
+            resultArea.className = 'result-area';
+            resultArea.id = `${tool.name}_result`;
+            resultArea.style.display = 'none';
+            invokeDiv.appendChild(resultArea);
+
+            card.appendChild(invokeDiv);
+
+            return card;
+        }
+
+        function toggleToolCard(card) {
+            card.classList.toggle('expanded');
+        }
+
+        async function invokeTool(tool) {
+            const args = {};
+            
+            // Collect parameter values
+            if (tool.inputSchema && tool.inputSchema.properties) {
+                Object.keys(tool.inputSchema.properties).forEach(paramName => {
+                    const input = document.getElementById(`${tool.name}_${paramName}`);
+                    if (input && input.value) {
+                        args[paramName] = input.value;
+                    }
+                });
+            }
+
+            const resultArea = document.getElementById(`${tool.name}_result`);
+            resultArea.style.display = 'block';
+            resultArea.textContent = 'Invoking tool...';
+
+            try {
+                const result = await mcpClient.invokeTool(tool.name, args);
+                resultArea.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultArea.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Allow Enter key to connect
+            document.getElementById('serverUrl').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    connectToServer();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

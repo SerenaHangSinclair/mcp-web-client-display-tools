@@ -1,0 +1,13 @@
+{
+  "name": "mcp-client-demo",
+  "version": "1.0.0",
+  "description": "Simple MCP client to display and invoke tools",
+  "main": "client.js",
+  "type": "module",
+  "scripts": {
+    "start": "node client.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
