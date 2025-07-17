@@ -124,12 +124,13 @@ QUERY_TIMEOUT=30000
 
 Suggest to use uv to create a sperate virtual environment for the MCP construction. Remember to install uv/:
 
-```bash Windows
+Windows
+```bash 
     powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-
-```bashn MacOS/Linux
+MacOS/Linux
+```bashn 
     curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
