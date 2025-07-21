@@ -29,73 +29,16 @@ A Model Context Protocol (MCP) server for Microsoft SQL Server that provides too
 
 ## Quick Start
 
-1. **Install the package**
-   ```bash
-   pip install mcp-mssql-server
-   ```
-
-2. **Create configuration**
-   ```bash
-   # Create .env file
-   DB_TYPE=mssql
-   MSSQL_SERVER=tcp:your-server.database.windows.net
-   MSSQL_USER=your-username
-   MSSQL_PASSWORD=your-password
-   MSSQL_DATABASE=your-database
-   ```
-
-3. **Run the server**
-   ```bash
-   uv run python mssql.py
-   or
-   uv run python main.py
-   ```
-
-## Installation
-
-### Option 1: Using pip
-```bash
-pip install mcp-mssql-server
-```
-
-### Option 2: Using uv
-```bash
-uv pip install mcp-mssql-server
-```
-
-### Option 3: From source
-```bash
-git clone https://github.com/SerenaHangSinclair/mcp-mssql-server.git
-cd mcp-mssql-server
-pip install -e .
-```
-
 ## Configuration
 
-Create a `.env` file in your project root with the basic required settings:
-
-```bash
-# Database Connection (Required)
-DB_TYPE=mssql
-MSSQL_SERVER=tcp:your-server.database.windows.net
-MSSQL_PORT=1433
-MSSQL_USER=your-username
-MSSQL_PASSWORD=your-password
-MSSQL_DATABASE=your-database
-
-# Security (Recommended)
-ALLOW_WRITE_OPERATIONS=false
-```
-
 <details>
-<summary> View complete configuration options</summary>
+<summary>  Create a `.env` file with your SQL Server Configuration </summary>
 
 ```bash
 # Database Type (mssql)
 DB_TYPE=mssql
 
-# SQL Server Configuration
-MSSQL_SERVER=tcp:your-server.database.windows.net
+MSSQL_SERVER=yoursqlsever
 MSSQL_PORT=1433
 MSSQL_USER=your-username
 MSSQL_PASSWORD=your-password
@@ -120,9 +63,10 @@ QUERY_TIMEOUT=30000
 ## Usage
 
 #### Running the MCP Server
+After clone all the repo, under mcp-mssql-server, create a sperate virtual environment for the MCP construction
 
-
-Suggest to use uv to create a sperate virtual environment for the MCP construction. Remember to install uv/:
+Suggest to use uv to manage the mcp python packages.
+Remember to install uv/:
 
 Windows
 ```bash 
@@ -138,8 +82,13 @@ MacOS/Linux
     uv venv
 ```
 
+**Run the server**
+```bash
+uv run python mssql.py
+or
+uv run python main.py
+```
 
-**Basic usage:**
 ```bash
 uv run python main.py or uv run python mssql.py 
 
@@ -156,11 +105,31 @@ Add this configuration to your Claude Desktop settings:
 
 ```json
 {
-  "mcp-mssql-server": {
-    "command": "uv",
-    "args": ["run", "python", "/path/to/mcp-mssql-server/main.py"]
+  "mcpServers": {
+    
+    "mcp-mssql-server": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "C:/Users/seren/MCPWebs/mcp-mssql-server",
+        "run",
+        "python",
+        "main.py"
+      ],
+      "env": {
+        "DB_TYPE": "mssql",
+        "MSSQL_HOST": "localhost",
+        "MSSQL_PORT": "1433",
+        "MSSQL_SERVER": "DESKTOP-6D3SN7U\\MCPSERVER",
+        "MSSQL_USER": "sa",
+        "MSSQL_DATABASE": "master",
+        "MSSQL_ENCRYPT": "true",
+        "MSSQL_TRUST_SERVER_CERTIFICATE": "true"
+      }
+    }
   }
 }
+
 ```
 
 ## Tools Overview
