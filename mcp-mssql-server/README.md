@@ -30,35 +30,35 @@ A Model Context Protocol (MCP) server for Microsoft SQL Server that provides too
 ## Quick Start
 
 ## Configuration
-
-<details>
-<summary>  Create a `.env` file with your SQL Server Configuration </summary>
-
-```bash
-# Database Type (mssql)
-DB_TYPE=mssql
-
-MSSQL_SERVER=yoursqlsever
-MSSQL_PORT=1433
-MSSQL_USER=your-username
-MSSQL_PASSWORD=your-password
-MSSQL_DATABASE=your-database
-MSSQL_ENCRYPT=true
-MSSQL_TRUST_SERVER_CERTIFICATE=true
-
-# Security Settings
-ALLOW_WRITE_OPERATIONS=false
-ALLOW_INSERT_OPERATION=false
-ALLOW_UPDATE_OPERATION=false
-ALLOW_DELETE_OPERATION=false
-
-# Performance Settings
-CONNECTION_POOL_MIN=1
-CONNECTION_POOL_MAX=10
-QUERY_TIMEOUT=30000
-```
-
-</details>
+        
+        <details>
+        <summary>  Create a `.env` file with your SQL Server Configuration </summary>
+        
+        ```bash
+        # Database Type (mssql)
+        DB_TYPE=mssql
+        
+        MSSQL_SERVER=yoursqlsever
+        MSSQL_PORT=1433
+        MSSQL_USER=your-username
+        MSSQL_PASSWORD=your-password
+        MSSQL_DATABASE=your-database
+        MSSQL_ENCRYPT=true
+        MSSQL_TRUST_SERVER_CERTIFICATE=true
+        
+        # Security Settings
+        ALLOW_WRITE_OPERATIONS=false
+        ALLOW_INSERT_OPERATION=false
+        ALLOW_UPDATE_OPERATION=false
+        ALLOW_DELETE_OPERATION=false
+        
+        # Performance Settings
+        CONNECTION_POOL_MIN=1
+        CONNECTION_POOL_MAX=10
+        QUERY_TIMEOUT=30000
+        ```
+        
+        </details>
 
 ## Usage
 
