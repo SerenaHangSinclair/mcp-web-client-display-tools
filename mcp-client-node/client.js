@@ -10,7 +10,7 @@ const rl = readline.createInterface({
 });
 
 async function connectToMCPServer() {
-  console.log('🚀 Starting MCP Client Demo\n');
+  console.log(' Starting MCP Client Demo\n');
   
   // Path to your MCP server
   const serverPath = '../SecurityAI/mcp-mssql-server/main.py';
@@ -33,16 +33,16 @@ async function connectToMCPServer() {
   try {
     // Connect to server
     await client.connect(transport);
-    console.log('✅ Connected to MCP server\n');
+    console.log(' Connected to MCP server\n');
 
     // List available tools
     const tools = await client.listTools();
-    console.log(`📦 Found ${tools.tools.length} tools:\n`);
+    console.log(` Found ${tools.tools.length} tools:\n`);
 
     // Display tools with formatting
     tools.tools.forEach((tool, index) => {
       console.log(`${index + 1}. ${tool.name}`);
-      console.log(`   📝 ${tool.description || 'No description'}`);
+      console.log(`    ${tool.description || 'No description'}`);
       
       if (tool.inputSchema?.properties) {
         console.log('   Parameters:');
@@ -61,7 +61,7 @@ async function connectToMCPServer() {
     await interactiveMode(client, tools.tools);
 
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error(' Error:', error.message);
   } finally {
     await transport.close();
     rl.close();
@@ -79,12 +79,12 @@ async function interactiveMode(client, tools) {
 
     const index = parseInt(toolIndex) - 1;
     if (index < 0 || index >= tools.length) {
-      console.log('❌ Invalid tool number');
+      console.log('Invalid tool number');
       continue;
     }
 
     const tool = tools[index];
-    console.log(`\n📌 Invoking: ${tool.name}`);
+    console.log(`\n Invoking: ${tool.name}`);
 
     // Collect parameters
     const args = {};
@@ -105,10 +105,10 @@ async function interactiveMode(client, tools) {
     try {
       console.log('\n⏳ Calling tool...');
       const result = await client.callTool(tool.name, args);
-      console.log('\n✅ Result:');
+      console.log('\n Result:');
       console.log(JSON.stringify(result.content, null, 2));
     } catch (error) {
-      console.error('\n❌ Error calling tool:', error.message);
+      console.error('\n Error calling tool:', error.message);
     }
   }
 }
