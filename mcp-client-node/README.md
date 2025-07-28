@@ -38,23 +38,23 @@ npm start
 ## Example Output
 
 ```
-🚀 Starting MCP Client Demo
+Starting MCP Client Demo
 
-✅ Connected to MCP server
+Connected to MCP server
 
-📦 Found 8 tools:
+Found 8 tools:
 
 1. sql_query
-   📝 Execute SQL queries with permission controls
+    Execute SQL queries with permission controls
    Parameters:
      - query: string (required)
        SQL query to execute
 
 2. get_database_info
-   📝 Get server version, current database, and available databases
+ Get server version, current database, and available databases
 
 3. show_tables
-   📝 List all tables in the current database
+    List all tables in the current database
    Parameters:
      - schema_name: string (optional)
        Schema name to filter tables
