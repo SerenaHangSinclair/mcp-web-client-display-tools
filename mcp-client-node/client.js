@@ -73,7 +73,7 @@ async function interactiveMode(client, tools) {
     const toolIndex = await question('\n🔧 Enter tool number to invoke (or "exit" to quit): ');
     
     if (toolIndex.toLowerCase() === 'exit') {
-      console.log('👋 Goodbye!');
+      console.log(' Goodbye!');
       break;
     }
 
@@ -103,7 +103,7 @@ async function interactiveMode(client, tools) {
     }
 
     try {
-      console.log('\n⏳ Calling tool...');
+      console.log('\n Calling tool...');
       const result = await client.callTool(tool.name, args);
       console.log('\n Result:');
       console.log(JSON.stringify(result.content, null, 2));
