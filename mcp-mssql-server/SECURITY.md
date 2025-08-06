@@ -14,13 +14,6 @@ If you discover a security vulnerability in this project, please report it priva
    - Potential impact
    - Any suggested fixes
 
-### What to Expect
-
-- We will acknowledge receipt within 48 hours
-- We will provide an initial assessment within 5 business days
-- We will work with you to understand and resolve the issue
-- We will credit you in the security advisory (unless you prefer to remain anonymous)
-
 ## Security Best Practices
 
 ### For Users
@@ -47,12 +40,6 @@ If you discover a security vulnerability in this project, please report it priva
 - **SQL injection protection**: Uses parameterized queries
 - **Connection encryption**: Supports SSL/TLS connections
 - **Audit logging**: Comprehensive logging of database operations
-
-## Supported Versions
-
-| Version | Supported          |
-| ------- | ------------------ |
-| 0.1.x   | :white_check_mark: |
 
 ## Known Security Considerations
 
